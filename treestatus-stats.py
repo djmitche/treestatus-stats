@@ -1,8 +1,10 @@
 import requests
 import datetime
+import argparse
 
-def main():
-    response = requests.get('https://treestatus.mozilla.org/fx-team/logs?format=json&all=1', verify=False)
+
+def main(tree):
+    response = requests.get('https://treestatus.mozilla.org/%s/logs?format=json&all=1' % tree, verify=False)
     results = response.json()
     delta = datetime.timedelta(0)
     closed = None
@@ -37,10 +39,16 @@ def main():
             Added = item['when']
             print "Added on :%s" % item['when']
 
-
     print "Tree has been closed for a total of %s since it was created on %s" % (total, Added)
     for k in sorted(month.keys()):
-        print "%s : %s" %(k, month[k])
+        print "%s : %s" % (k, month[k])
 
-if __name__ == '__main__':
-    main()
+parser = argparse.ArgumentParser(description="Collect and print Treestatus stats")
+parser.add_argument('--tree', dest='tree',
+                    choices=['mozilla-inbound', "mozilla-aurora", "mozilla-beta",
+                             'mozilla-central', 'fx-team', 'b2g-inbound'],
+                    help='Tree that you wish to use')
+args = parser.parse_args()
+if args.tree is None:
+    parser.error("--tree can not be empty")
+main(args.tree)
