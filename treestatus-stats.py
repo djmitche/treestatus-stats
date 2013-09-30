@@ -29,11 +29,14 @@ def main(tree):
                 dates[closed.date().isoformat()] = delta
 
             year_month = "%s-%s" % (closed.date().year, closed.date().month)
-            if year_month in month:
-                month[year_month] = month[year_month] + delta
-            else:
-                month[year_month] = delta
-            total += delta
+
+            if year_month not in ['2012-6', '2012-7']:
+                if year_month in month:
+                    month[year_month] = month[year_month] + delta
+                else:
+                    month[year_month] = delta
+
+                total += delta
             closed = None
         elif item['action'] == 'added':
             Added = item['when']
@@ -43,12 +46,13 @@ def main(tree):
     for k in sorted(month.keys()):
         print "%s : %s" % (k, month[k])
 
+
 parser = argparse.ArgumentParser(description="Collect and print Treestatus stats")
 parser.add_argument('--tree', dest='tree',
                     choices=['mozilla-inbound', "mozilla-aurora", "mozilla-beta",
                              'mozilla-central', 'fx-team', 'b2g-inbound'],
                     help='Tree that you wish to use')
+
 args = parser.parse_args()
-if args.tree is None:
-    parser.error("--tree can not be empty")
-main(args.tree)
+if args.tree is not None:
+    main(args.tree)
