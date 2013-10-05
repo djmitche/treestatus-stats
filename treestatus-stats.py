@@ -43,12 +43,16 @@ def main(tree):
             print "Added on :%s" % item['when']
 
     print "Tree has been closed for a total of %s since it was created on %s" % (total, Added)
-    for k in sorted(month.keys()):
-        print "%s : %s" % (k, month[k])
+    _print_dict(month)
+
+
+def _print_dict(_dict):
+    for k in sorted(_dict.keys()):
+        print "%s : %s" % (k, _dict[k])
+
 
 def backout():
-    import os, subprocess
-    import pdb
+    import subprocess
     import re
     import sys
     import datetime
@@ -142,13 +146,14 @@ def backout():
               '2013-06': 0,
               '2013-07': 0,
               '2013-08': 0,
-              '2013-09': 0}
+              '2013-09': 0,
+              '2013-10': 0}
     for item in results:
         for bucket in totals:
             if bucket in item:
                 totals[bucket] += len(results[item])
 
-    print totals
+    _print_dict(totals)
 
 
 parser = argparse.ArgumentParser(description="Collect and print Treestatus stats")
