@@ -28,9 +28,9 @@ def main(tree):
             else:
                 dates[closed.date().isoformat()] = delta
 
-            year_month = "%s-%s" % (closed.date().year, closed.date().month)
+            year_month = "%s-%s" % (closed.date().year, closed.date().month if closed.date().month >= 10 else '0%s' % closed.date().month)
 
-            if year_month not in ['2012-6', '2012-7']:
+            if year_month not in ['2012-06', '2012-07']:
                 if year_month in month:
                     month[year_month] = month[year_month] + delta
                 else:
@@ -44,6 +44,7 @@ def main(tree):
 
     print "Tree has been closed for a total of %s since it was created on %s" % (total, Added)
     _print_dict(month)
+    return month
 
 
 def _print_dict(_dict):
@@ -84,7 +85,7 @@ def backout():
             return 12
         else:
             print "Unknown month: %s" % s
-            sys.exit(1)     
+            sys.exit(1)
 
     def parsedate(line):
         elements = line.split(" ")
@@ -124,7 +125,7 @@ def backout():
             # either we counted it as a backout or we didn't but either way
             # it's done, so skip over it
             i += 1
-            
+
         # Advance to next line
         i += 1
 
@@ -152,9 +153,55 @@ def backout():
         for bucket in totals:
             if bucket in item:
                 totals[bucket] += len(results[item])
-
+    print('\nBackouts per month')
     _print_dict(totals)
+    return totals
 
+
+def plot(tree):
+    closure = main(tree)
+    backouts = backout()
+
+    from matplotlib import pyplot as plt
+    from matplotlib.dates import date2num
+
+    # Generate Closure subplot
+    c_data = [(datetime.datetime.strptime(k, "%Y-%m"), closure[k]) for k in sorted(closure.keys())]
+
+    x = [date2num(date) for (date, value) in c_data]
+    y = [value.total_seconds()/3600 for (date, value) in c_data]
+
+    fig, graph = plt.subplots()
+
+    # Plot the data as a red line with round markers
+    graph.plot(x,y,'r')
+
+    graph.set_xticks(x)
+
+    # Set the xtick labels to correspond to just the dates you entered.
+    graph.set_xticklabels(
+            [date.strftime("%Y-%m") for (date, value) in c_data]
+            )
+    graph.set_ylabel('Closure time in hours per month')
+
+    b_data = [(datetime.datetime.strptime(k, "%Y-%m"), backouts[k]) for k in sorted(backouts.keys())]
+
+    x1 = [date2num(date) for (date, value) in b_data]
+    y1 = [value for (date, value) in b_data]
+
+    graph1 = graph.twinx()
+
+    # Plot the data as a red line with round markers
+    graph1.plot(x1,y1,'b')
+    graph1.set_xticks(x1)
+    graph1.set_ylabel('Backouts per month')
+
+    # Set the xtick labels to correspond to just the dates you entered.
+    #graph1.set_xticklabels(
+    #        [date.strftime("%Y-%m") for (date, value) in b_data]
+    #        )
+
+    plt.savefig('test.png', dpi=200)
 
 parser = argparse.ArgumentParser(description="Collect and print Treestatus stats")
 parser.add_argument('--tree', dest='tree',
@@ -163,11 +210,16 @@ parser.add_argument('--tree', dest='tree',
                     help='Tree that you wish to use')
 parser.add_argument('--backout', dest='backout', action='store_true',
                     help='Show all backout data.')
+parser.add_argument('--generate', dest='generate', action='store_true',
+                    help='Generate a plot of data')
 
 args = parser.parse_args()
 
-if args.tree is not None:
+if args.tree is not None and args.generate is False:
     main(args.tree)
-if args.backout is True:
+if args.backout is True and args.generate is False:
         backout()
-
+if args.generate is True:
+    if args.tree is None:
+        argparse.ArgumentParser.error('Please pass in the tree')
+    plot(args.tree)
