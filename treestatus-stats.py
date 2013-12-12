@@ -8,6 +8,7 @@ def main(tree):
     results = response.json()
     delta = datetime.timedelta(0)
     closed = None
+    closed_reason = None
     dates = {}
     month = {}
     total = datetime.timedelta(0)
@@ -17,6 +18,7 @@ def main(tree):
             if closed is not None:
                 continue
             closed = datetime.datetime.strptime(item['when'], "%Y-%m-%dT%H:%M:%S")
+            closed_reason = item['tags']
         elif item['action'] == 'open' or item['action'] == 'approval require':
             if closed is None:
                 continue
@@ -38,13 +40,14 @@ def main(tree):
 
                 total += delta
             closed = None
+            closed_reason = None
         elif item['action'] == 'added':
             Added = item['when']
             print "Added on :%s" % item['when']
 
     print "Tree has been closed for a total of %s since it was created on %s" % (total, Added)
     _print_dict(month)
-    return month
+    return month, dates
 
 
 def _print_dict(_dict):
@@ -97,9 +100,10 @@ def backout():
         return datetime.date(year, month, day).isoformat()
 
     #pdb.set_trace()
-    p = subprocess.Popen("hg log -l 50000", shell=True, stdout=subprocess.PIPE)
+    p = subprocess.Popen("hg log -l 60000", shell=True, stdout=subprocess.PIPE)
     data = p.communicate()
     results = {}
+    total_pushes = {}
     lines = data[0].split("\n")
 
     dateln = re.compile('^date:.*')
@@ -116,6 +120,10 @@ def backout():
             # Initialize the list if we need to
             if d not in results:
                 results[d] = []
+            if d not in total_pushes:
+                total_pushes[d] = 1
+            else:
+                total_pushes[d] = total_pushes[d] + 1
 
             if (backoutln.match(lines[i+1]) or
                 backoutln2.match(lines[i+1]) or
@@ -148,31 +156,39 @@ def backout():
               '2013-07': 0,
               '2013-08': 0,
               '2013-09': 0,
-              '2013-10': 0}
+              '2013-10': 0,
+              '2013-11': 0,
+              '2013-12': 0}
+    total_pushes_pm = totals.copy()
     for item in results:
         for bucket in totals:
             if bucket in item:
                 totals[bucket] += len(results[item])
+    for item in total_pushes:
+        for bucket in total_pushes_pm:
+            if bucket in item:
+                total_pushes_pm[bucket] += total_pushes[item]
     print('\nBackouts per month')
     _print_dict(totals)
-    return totals
+    print('\n\nPushes per month')
+    _print_dict(total_pushes_pm)
+    return totals, total_pushes_pm
 
 
 def plot(tree):
-    closure = main(tree)
-    backouts = backout()
+    closure_months, closure_dates = main(tree)
+    backouts, backouts_pm = backout()
 
     from matplotlib import pyplot as plt
     from matplotlib.dates import date2num
 
     # Generate Closure subplot
-    c_data = [(datetime.datetime.strptime(k, "%Y-%m"), closure[k]) for k in sorted(closure.keys())]
+    c_data = [(datetime.datetime.strptime(k, "%Y-%m"), closure_months[k]) for k in sorted(closure_months.keys())]
 
     x = [date2num(date) for (date, value) in c_data]
     y = [value.total_seconds()/3600 for (date, value) in c_data]
 
     fig, graph = plt.subplots()
-
     # Plot the data as a red line with round markers
     graph.plot(x,y,'r')
 
@@ -182,7 +198,7 @@ def plot(tree):
     graph.set_xticklabels(
             [date.strftime("%Y-%m") for (date, value) in c_data]
             )
-    graph.set_ylabel('Closure time in hours per month')
+    graph.set_ylabel('Closure time in hours per month (red)')
 
     b_data = [(datetime.datetime.strptime(k, "%Y-%m"), backouts[k]) for k in sorted(backouts.keys())]
 
@@ -194,7 +210,7 @@ def plot(tree):
     # Plot the data as a red line with round markers
     graph1.plot(x1,y1,'b')
     graph1.set_xticks(x1)
-    graph1.set_ylabel('Backouts per month')
+    graph1.set_ylabel('Backouts per month (blue)')
 
     # Set the xtick labels to correspond to just the dates you entered.
     #graph1.set_xticklabels(
@@ -202,6 +218,50 @@ def plot(tree):
     #        )
 
     plt.savefig('test.png', dpi=200)
+
+def plot_backout_vs_push():
+
+    backouts, pushes = backout()
+
+    from matplotlib import pyplot as plt
+    from matplotlib.dates import date2num
+
+    # Generate Closure subplot
+    c_data = [(datetime.datetime.strptime(k, "%Y-%m"), pushes[k]) for k in sorted(pushes.keys())]
+
+    x = [date2num(date) for (date, value) in c_data]
+    y = []
+    for backot in backouts.keys():
+        y.append(pushes[backot]/backouts[backot])
+    import pdb
+    pdb.set_trace()
+    #y = [value for (date, value) in c_data]
+
+    fig, graph = plt.subplots()
+    # Plot the data as a red line with round markers
+    graph.plot(x,y,'r')
+
+    graph.set_xticks(x)
+
+    # Set the xtick labels to correspond to just the dates you entered.
+    graph.set_xticklabels(
+            [date.strftime("%Y-%m") for (date, value) in c_data]
+            )
+    graph.set_ylabel('Ratio of Pushes to backouts')
+
+    '''b_data = [(datetime.datetime.strptime(k, "%Y-%m"), backouts[k]) for k in sorted(backouts.keys())]
+
+    x1 = [date2num(date) for (date, value) in b_data]
+    y1 = [value for (date, value) in b_data]
+
+    graph1 = graph.twinx()
+
+    # Plot the data as a red line with round markers
+    graph1.plot(x1,y1,'b')
+    graph1.set_xticks(x1)
+    graph1.set_ylabel('Blue - Backouts per month')
+    '''
+    plt.savefig('backout_vs_pushes.png', dpi=200)
 
 parser = argparse.ArgumentParser(description="Collect and print Treestatus stats")
 parser.add_argument('--tree', dest='tree',
@@ -212,6 +272,8 @@ parser.add_argument('--backout', dest='backout', action='store_true',
                     help='Show all backout data.')
 parser.add_argument('--generate', dest='generate', action='store_true',
                     help='Generate a plot of data')
+parser.add_argument('--backout_vs_pushes', dest='backout_vs_pushes', action='store_true',
+                    help='Generate a plot of data for backouts vs pushes')
 
 args = parser.parse_args()
 
@@ -223,3 +285,5 @@ if args.generate is True:
     if args.tree is None:
         argparse.ArgumentParser.error('Please pass in the tree')
     plot(args.tree)
+if args.backout_vs_pushes is True:
+    plot_backout_vs_push()
