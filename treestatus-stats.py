@@ -158,7 +158,8 @@ def backout():
               '2013-09': 0,
               '2013-10': 0,
               '2013-11': 0,
-              '2013-12': 0}
+              '2013-12': 0,
+              '2014-01': 0}
     total_pushes_pm = totals.copy()
     for item in results:
         for bucket in totals:
@@ -233,9 +234,6 @@ def plot_backout_vs_push():
     y = []
     for backot in backouts.keys():
         y.append(pushes[backot]/backouts[backot])
-    import pdb
-    pdb.set_trace()
-    #y = [value for (date, value) in c_data]
 
     fig, graph = plt.subplots()
     # Plot the data as a red line with round markers
