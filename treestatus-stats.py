@@ -18,7 +18,7 @@ def main(tree):
             if closed is not None:
                 continue
             closed = datetime.datetime.strptime(item['when'], "%Y-%m-%dT%H:%M:%S")
-            closed_reason = item['tags']
+            closed_reason = item['tags'][0] if len(item['tags']) > 0 else 'no reason'
         elif item['action'] == 'open' or item['action'] == 'approval require':
             if closed is None:
                 continue
@@ -26,17 +26,25 @@ def main(tree):
             delta = opened - closed
 
             if closed.date().isoformat() in dates:
-                dates[closed.date().isoformat()] = dates[closed.date().isoformat()] + delta
+                try:
+                    dates[closed.date().isoformat()]['total'] = dates[closed.date().isoformat()]['total'] + delta
+                    dates[closed.date().isoformat()][closed_reason] = dates[closed.date().isoformat()][closed_reason] + delta
+                except:
+                    dates[closed.date().isoformat()][closed_reason] = delta
             else:
-                dates[closed.date().isoformat()] = delta
+                dates[closed.date().isoformat()] = {'total': delta, closed_reason: delta}
 
             year_month = "%s-%s" % (closed.date().year, closed.date().month if closed.date().month >= 10 else '0%s' % closed.date().month)
 
             if year_month not in ['2012-06', '2012-07']:
                 if year_month in month:
-                    month[year_month] = month[year_month] + delta
+                    month[year_month]['total'] = month[year_month]['total'] + delta
+                    try:
+                        month[year_month][closed_reason] = month[year_month][closed_reason] + delta
+                    except:
+                        month[year_month][closed_reason] = delta
                 else:
-                    month[year_month] = delta
+                    month[year_month] = {'total': delta, closed_reason: delta}
 
                 total += delta
             closed = None
@@ -46,13 +54,19 @@ def main(tree):
             print "Added on :%s" % item['when']
 
     print "Tree has been closed for a total of %s since it was created on %s" % (total, Added)
+    import pdb; pdb.set_trace()
     _print_dict(month)
     return month, dates
 
 
 def _print_dict(_dict):
     for k in sorted(_dict.keys()):
-        print "%s : %s" % (k, _dict[k])
+        if type(_dict[k]) == dict:
+            print "%s" % k
+            for reason in sorted(_dict[k].keys()):
+                print "\t %s: %s" % (reason, _dict[k][reason])
+        else:
+            print "%s : %s" % (k, _dict[k])
 
 
 def backout():
@@ -186,7 +200,7 @@ def plot(tree):
     from matplotlib.dates import date2num
 
     # Generate Closure subplot
-    c_data = [(datetime.datetime.strptime(k, "%Y-%m"), closure_months[k]) for k in sorted(closure_months.keys())]
+    c_data = [(datetime.datetime.strptime(k, "%Y-%m"), closure_months[k]['total']) for k in sorted(closure_months.keys())]
 
     x = [date2num(date) for (date, value) in c_data]
     y = [value.total_seconds()/3600 for (date, value) in c_data]
@@ -214,11 +228,6 @@ def plot(tree):
     graph1.plot(x1,y1,'b')
     graph1.set_xticks(x1)
     graph1.set_ylabel('Backouts per month (blue)')
-
-    # Set the xtick labels to correspond to just the dates you entered.
-    #graph1.set_xticklabels(
-    #        [date.strftime("%Y-%m") for (date, value) in b_data]
-    #        )
 
     plt.savefig('test.png', dpi=200)
 
