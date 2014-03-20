@@ -100,7 +100,7 @@ def backout():
         return datetime.date(year, month, day).isoformat()
 
     #pdb.set_trace()
-    p = subprocess.Popen("hg log -l 60000", shell=True, stdout=subprocess.PIPE)
+    p = subprocess.Popen("hg log -l 70000", shell=True, stdout=subprocess.PIPE)
     data = p.communicate()
     results = {}
     total_pushes = {}
@@ -159,7 +159,9 @@ def backout():
               '2013-10': 0,
               '2013-11': 0,
               '2013-12': 0,
-              '2014-01': 0}
+              '2014-01': 0,
+              '2014-02': 0,
+              '2014-03': 0}
     total_pushes_pm = totals.copy()
     for item in results:
         for bucket in totals:
@@ -233,7 +235,10 @@ def plot_backout_vs_push():
     x = [date2num(date) for (date, value) in c_data]
     y = []
     for backot in backouts.keys():
-        y.append(pushes[backot]/backouts[backot])
+        try:
+            y.append(pushes[backot]/backouts[backot])
+        except:
+            y.append(0)
 
     fig, graph = plt.subplots()
     # Plot the data as a red line with round markers
