@@ -249,7 +249,8 @@ def plot(tree):
 
     # Set the xtick labels to correspond to just the dates you entered.
     graph.set_xticklabels(
-            [date.strftime("%Y-%m") for (date, value) in c_data]
+            [date.strftime("%Y-%m") for (date, value) in c_data],
+            rotation=45
             )
     graph.set_ylabel('Closure time in hours per month (red)')
 
@@ -293,7 +294,8 @@ def plot_backout_vs_push():
 
     # Set the xtick labels to correspond to just the dates you entered.
     graph.set_xticklabels(
-            [date.strftime("%Y-%m") for (date, value) in c_data]
+            [date.strftime("%Y-%m") for (date, value) in c_data],
+            rotation=45
             )
     graph.set_ylabel('Ratio of Pushes to backouts')
 
