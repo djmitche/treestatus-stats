@@ -22,18 +22,21 @@ def plot_backout_reasons(tree):
          'checkin-test': []}
 
     c_data = [(datetime.datetime.strptime(k, "%Y-%m"), closure_months[k]) for k in sorted(closure_months.keys())]
-
+    x = [date2num(date) for (date, value) in c_data]
     for data in c_data:
+        # We need to make a sparse array so we can have the 2 arrays the same length when plotting
         not_filled = [k for k in y.keys() if k not in data[1].keys()]
         for nf in not_filled:
             y[nf].append(0)
+        #show me the data
         for _x in data[1].keys():
-            if date2num(data[0]) not in x:
-                x.append(date2num(data[0]))
             y[_x].append(data[1][_x].total_seconds() / 3600)
 
+    # Draw each line
     for keys in y.keys():
         plt.plot(x, y[keys], label=keys)
+
+    # loc = 2 means put the legend on the top left
     plt.legend(loc=2)
     plt.savefig('closures.png', dpi=200)
 
@@ -291,6 +294,8 @@ def plot_backout_vs_push():
 
     plt.savefig('backout_vs_pushes.png', dpi=200)
 
+
+# Parser and running code
 parser = argparse.ArgumentParser(description="Collect and print Treestatus stats")
 parser.add_argument('--tree', dest='tree',
                     choices=['mozilla-inbound', "mozilla-aurora", "mozilla-beta",
