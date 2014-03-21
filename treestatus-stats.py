@@ -32,6 +32,11 @@ def plot_backout_reasons(tree):
         for _x in data[1].keys():
             y[_x].append(data[1][_x].total_seconds() / 3600)
 
+    plt.xticks(x,
+                [date.strftime("%Y-%m") for (date, value) in c_data],
+                rotation=45
+                )
+    axes.set_ylabel("Closure time (in hours)")
     # Draw each line
     for keys in y.keys():
         plt.plot(x, y[keys], label=keys)
