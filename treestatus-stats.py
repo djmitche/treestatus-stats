@@ -263,9 +263,6 @@ def plot_backout_vs_push():
 
     backouts, pushes = backout()
 
-    from matplotlib import pyplot as plt
-    from matplotlib.dates import date2num
-
     # Generate Closure subplot
     c_data = [(datetime.datetime.strptime(k, "%Y-%m"), pushes[k]) for k in sorted(pushes.keys())]
 
@@ -273,23 +270,19 @@ def plot_backout_vs_push():
     y = []
     for backot in backouts.keys():
         try:
-            y.append(pushes[backot]/backouts[backot])
+            y.append(pushes[backot] / backouts[backot])
         except:
             y.append(0)
 
     fig, graph = plt.subplots()
     # Plot the data as a red line with round markers
-    graph.plot(x,y,'r', label="Backouts vs Commit ratio")
-
-    graph.set_xticks(x)
+    graph.plot(x, y, 'r', label="Backouts vs Commit ratio")
 
     # Set the xtick labels to correspond to just the dates you entered.
-    graph.set_xticklabels(
-            [date.strftime("%Y-%m") for (date, value) in c_data],
-            rotation=45
-            )
-    graph.set_ylabel('Ratio of Pushes to backouts')
-
+    graph.set_xticklabels([date.strftime("%Y-%m") for (date, value) in c_data],
+                          rotation=45
+                          )
+    plt.legend()
     plt.savefig('backout_vs_pushes.png', dpi=200)
 
 
