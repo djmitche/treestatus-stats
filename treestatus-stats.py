@@ -2,12 +2,12 @@ import requests
 import datetime
 import argparse
 
+from matplotlib import pyplot as plt
+from matplotlib.dates import date2num
+
 
 def plot_backout_reasons(tree):
     closure_months, closure_dates = main(tree)
-
-    from matplotlib import pyplot as plt
-    from matplotlib.dates import date2num
 
     fig, axes = plt.subplots()
     x = []
@@ -232,40 +232,31 @@ def plot(tree):
     closure_months, closure_dates = main(tree)
     backouts, backouts_pm = backout()
 
-    from matplotlib import pyplot as plt
-    from matplotlib.dates import date2num
+    fig, axes = plt.subplots()
 
     # Generate Closure subplot
     c_data = [(datetime.datetime.strptime(k, "%Y-%m"), closure_months[k]['total']) for k in sorted(closure_months.keys())]
 
     x = [date2num(date) for (date, value) in c_data]
-    y = [value.total_seconds()/3600 for (date, value) in c_data]
+    y = [value.total_seconds() / 3600 for (date, value) in c_data]
 
-    fig, graph = plt.subplots()
     # Plot the data as a red line with round markers
-    graph.plot(x,y,'r')
+    plt.plot(x, y, 'r', label='Closure total')
 
-    graph.set_xticks(x)
-
-    # Set the xtick labels to correspond to just the dates you entered.
-    graph.set_xticklabels(
-            [date.strftime("%Y-%m") for (date, value) in c_data],
-            rotation=45
-            )
-    graph.set_ylabel('Closure time in hours per month (red)')
-
+    # Backout Data
     b_data = [(datetime.datetime.strptime(k, "%Y-%m"), backouts[k]) for k in sorted(backouts.keys())]
 
     x1 = [date2num(date) for (date, value) in b_data]
     y1 = [value for (date, value) in b_data]
 
-    graph1 = graph.twinx()
+    plt.plot(x1, y1, 'b', label='Backouts per month')
 
-    # Plot the data as a red line with round markers
-    graph1.plot(x1,y1,'b')
-    graph1.set_xticks(x1)
-    graph1.set_ylabel('Backouts per month (blue)')
-
+    # Set the xtick labels to correspond to just the dates you entered.
+    plt.xticks(x,
+               [date.strftime("%Y-%m") for (date, value) in c_data],
+               rotation=45
+               )
+    plt.legend()
     plt.savefig('test.png', dpi=200)
 
 def plot_backout_vs_push():
