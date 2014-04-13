@@ -43,7 +43,7 @@ def plot_backout_reasons(tree):
 
     # loc = 2 means put the legend on the top left
     plt.legend(loc=2)
-    plt.savefig('closures.png', dpi=200)
+    plt.savefig('closures.jpg', dpi=200)
 
 def main(tree):
     response = requests.get('https://treestatus.mozilla.org/%s/logs?format=json&all=1' % tree, verify=False)
@@ -257,7 +257,7 @@ def plot(tree):
                rotation=45
                )
     plt.legend()
-    plt.savefig('test.png', dpi=200)
+    plt.savefig('test.jpg', dpi=200)
 
 def plot_backout_vs_push():
 
@@ -283,7 +283,7 @@ def plot_backout_vs_push():
                           rotation=45
                           )
     plt.legend()
-    plt.savefig('backout_vs_pushes.png', dpi=200)
+    plt.savefig('backout_vs_pushes.jpg', dpi=200)
 
 
 # Parser and running code
