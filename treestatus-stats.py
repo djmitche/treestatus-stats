@@ -6,45 +6,6 @@ from matplotlib import pyplot as plt
 from matplotlib.dates import date2num
 
 
-def plot_backout_reasons(tree):
-    closure_months, closure_dates = main(tree)
-
-    fig, axes = plt.subplots()
-    x = []
-    y = {'no reason': [],
-         'checkin-test': [],
-         'checkin-compilation': [],
-         'infra': [],
-         'other': [],
-         'planned': [],
-         'total': [],
-         'backlog': [],
-         'checkin-test': []}
-
-    c_data = [(datetime.datetime.strptime(k, "%Y-%m"), closure_months[k]) for k in sorted(closure_months.keys())]
-    x = [date2num(date) for (date, value) in c_data]
-    for data in c_data:
-        # We need to make a sparse array so we can have the 2 arrays the same length when plotting
-        not_filled = [k for k in y.keys() if k not in data[1].keys()]
-        for nf in not_filled:
-            y[nf].append(0)
-        #show me the data
-        for _x in data[1].keys():
-            y[_x].append(data[1][_x].total_seconds() / 3600)
-
-    plt.xticks(x,
-                [date.strftime("%Y-%m") for (date, value) in c_data],
-                rotation=45
-                )
-    axes.set_ylabel("Closure time (in hours)")
-    # Draw each line
-    for keys in y.keys():
-        plt.plot(x, y[keys], label=keys)
-
-    # loc = 2 means put the legend on the top left
-    plt.legend(loc=2)
-    plt.savefig('%s-closures.jpg' % tree, dpi=200)
-
 def main(tree):
     response = requests.get('https://treestatus.mozilla.org/%s/logs?format=json&all=1' % tree, verify=False)
     results = response.json()
@@ -285,6 +246,46 @@ def plot_backout_vs_push():
                 )
     plt.legend()
     plt.savefig('backout_vs_pushes.jpg', dpi=200)
+
+def plot_backout_reasons(tree):
+    closure_months, closure_dates = main(tree)
+
+    fig, axes = plt.subplots()
+    x = []
+    y = {'no reason': [],
+         'checkin-test': [],
+         'checkin-compilation': [],
+         'infra': [],
+         'other': [],
+         'planned': [],
+         'total': [],
+         'backlog': [],
+         'checkin-test': []}
+
+    c_data = [(datetime.datetime.strptime(k, "%Y-%m"), closure_months[k]) for k in sorted(closure_months.keys())]
+    x = [date2num(date) for (date, value) in c_data]
+    for data in c_data:
+        # We need to make a sparse array so we can have the 2 arrays the same length when plotting
+        not_filled = [k for k in y.keys() if k not in data[1].keys()]
+        for nf in not_filled:
+            y[nf].append(0)
+        #show me the data
+        for _x in data[1].keys():
+            y[_x].append(data[1][_x].total_seconds() / 3600)
+
+    plt.xticks(x,
+               [date.strftime("%Y-%m") for (date, value) in c_data],
+               rotation=45
+               )
+    axes.set_ylabel("Closure time (in hours)")
+    # Draw each line
+    for keys in y.keys():
+        plt.plot(x, y[keys], label=keys)
+
+    # loc = 2 means put the legend on the top left
+    plt.legend(loc=2)
+    plt.savefig('%s-closures.jpg' % tree, dpi=200)
+
 
 
 # Parser and running code
