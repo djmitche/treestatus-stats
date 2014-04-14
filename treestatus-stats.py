@@ -43,7 +43,7 @@ def plot_backout_reasons(tree):
 
     # loc = 2 means put the legend on the top left
     plt.legend(loc=2)
-    plt.savefig('closures.jpg', dpi=200)
+    plt.savefig('%s-closures.jpg' % tree, dpi=200)
 
 def main(tree):
     response = requests.get('https://treestatus.mozilla.org/%s/logs?format=json&all=1' % tree, verify=False)
@@ -155,7 +155,7 @@ def backout():
         return datetime.date(year, month, day).isoformat()
 
     #pdb.set_trace()
-    p = subprocess.Popen("hg log -l 70000", shell=True, stdout=subprocess.PIPE)
+    p = subprocess.Popen("hg log -l 100000", shell=True, stdout=subprocess.PIPE)
     data = p.communicate()
     results = {}
     total_pushes = {}
@@ -212,7 +212,8 @@ def backout():
               '2013-12': 0,
               '2014-01': 0,
               '2014-02': 0,
-              '2014-03': 0}
+              '2014-03': 0,
+              '2014-04': 0}
     total_pushes_pm = totals.copy()
     for item in results:
         for bucket in totals:
@@ -263,7 +264,6 @@ def plot_backout_vs_push():
 
     backouts, pushes = backout()
 
-    # Generate Closure subplot
     c_data = [(datetime.datetime.strptime(k, "%Y-%m"), pushes[k]) for k in sorted(pushes.keys())]
 
     x = [date2num(date) for (date, value) in c_data]
@@ -279,9 +279,10 @@ def plot_backout_vs_push():
     graph.plot(x, y, 'r', label="Backouts vs Commit ratio")
 
     # Set the xtick labels to correspond to just the dates you entered.
-    graph.set_xticklabels([date.strftime("%Y-%m") for (date, value) in c_data],
-                          rotation=45
-                          )
+    plt.xticks(x,
+                [date.strftime("%Y-%m") for (date, value) in c_data],
+                rotation=45
+                )
     plt.legend()
     plt.savefig('backout_vs_pushes.jpg', dpi=200)
 
