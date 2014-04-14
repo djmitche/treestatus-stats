@@ -273,10 +273,10 @@ def plot_backout_vs_push():
             y.append(pushes[backot] / backouts[backot])
         except:
             y.append(0)
-
     fig, graph = plt.subplots()
     # Plot the data as a red line with round markers
     graph.plot(x, y, 'r', label="Backouts vs Commit ratio")
+    graph.set_ylim(min(y) - 1, max(y) + 1)
 
     # Set the xtick labels to correspond to just the dates you entered.
     plt.xticks(x,
