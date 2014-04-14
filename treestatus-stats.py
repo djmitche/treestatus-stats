@@ -302,13 +302,13 @@ parser.add_argument('--closures', dest='closures', action='store_true',
                     help='Generate a plot of data')
 args = parser.parse_args()
 
-if args.tree is not None and args.generate is False:
+if args.tree is not None and args.generate is False and args.closures is False:
     main(args.tree)
 if args.tree is not None and args.closures:
     plot_backout_reasons(args.tree)
 if args.backout is True and args.generate is False:
         backout()
-if args.generate is True:
+if args.generate is True and args.closures is False:
     if args.tree is None:
         argparse.ArgumentParser.error('Please pass in the tree')
     plot(args.tree)
