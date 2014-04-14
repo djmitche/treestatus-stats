@@ -1,4 +1,4 @@
 *.py[co]
 tree_closed.txt
 *.sw[po]
-test.png
+*.egg-info/
