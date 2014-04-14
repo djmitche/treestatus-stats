@@ -218,8 +218,9 @@ def plot(tree):
                [date.strftime("%Y-%m") for (date, value) in c_data],
                rotation=45
                )
-    plt.legend()
-    plt.savefig('test.jpg', dpi=200)
+    # loc = 2 means put the legend on the top left
+    plt.legend(loc=2)
+    plt.savefig('%s-backout-vs-closures.jpg' % tree, dpi=200)
 
 def plot_backout_vs_push():
 
@@ -285,8 +286,6 @@ def plot_backout_reasons(tree):
     # loc = 2 means put the legend on the top left
     plt.legend(loc=2)
     plt.savefig('%s-closures.jpg' % tree, dpi=200)
-
-
 
 # Parser and running code
 parser = argparse.ArgumentParser(description="Collect and print Treestatus stats")
