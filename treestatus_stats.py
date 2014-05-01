@@ -213,6 +213,9 @@ def plot(tree):
 
     plt.plot(x1, y1, 'b', label='Backouts per month')
 
+    p_data = [(datetime.datetime.strptime(k, "%Y-%m"), backouts_pm[k]) for k in sorted(backouts_pm.keys())]
+    plt.plot(x1, [value for (date, value) in p_data], 'g', label='Pushes per month')
+
     # Set the xtick labels to correspond to just the dates you entered.
     plt.xticks(x,
                [date.strftime("%Y-%m") for (date, value) in c_data],
