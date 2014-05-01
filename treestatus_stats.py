@@ -174,7 +174,8 @@ def backout():
               '2014-01': 0,
               '2014-02': 0,
               '2014-03': 0,
-              '2014-04': 0}
+              '2014-04': 0,
+              '2014-05': 0}
     total_pushes_pm = totals.copy()
     for item in results:
         for bucket in totals:
@@ -249,7 +250,7 @@ def plot_backout_vs_push():
                 rotation=45
                 )
     plt.legend()
-    plt.savefig('backout_vs_pushes.jpg', dpi=200)
+    plt.savefig('mozilla-inbound-backout_vs_pushes.jpg', dpi=200)
 
 def plot_backout_reasons(tree):
     closure_months, closure_dates = main(tree)
