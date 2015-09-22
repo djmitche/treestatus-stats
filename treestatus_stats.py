@@ -7,7 +7,7 @@ from matplotlib.dates import date2num
 
 
 def main(tree):
-    response = requests.get('https://treestatus.mozilla.org/%s/logs?format=json&all=1' % tree, verify=False)
+    response = requests.get('https://api.pub.build.mozilla.org/treestatus/trees/%s/logs?all=1' % tree, verify=False)
     results = response.json()
     delta = datetime.timedelta(0)
     closed = None
@@ -16,13 +16,13 @@ def main(tree):
     month = {}
     total = datetime.timedelta(0)
     Added = None
-    for item in reversed(results['logs']):
-        if item['action'] == 'closed':
+    for item in sorted(results['result'], key=lambda l: l['when']):
+        if item['status'] == 'closed':
             if closed is not None:
                 continue
             closed = datetime.datetime.strptime(item['when'], "%Y-%m-%dT%H:%M:%S")
             closed_reason = item['tags'][0] if len(item['tags']) > 0 else 'no reason'
-        elif item['action'] == 'open' or item['action'] == 'approval require':
+        elif item['status'] == 'open' or item['status'] == 'approval require':
             if closed is None:
                 continue
             opened = datetime.datetime.strptime(item['when'], "%Y-%m-%dT%H:%M:%S")
@@ -52,7 +52,7 @@ def main(tree):
                 total += delta
             closed = None
             closed_reason = None
-        elif item['action'] == 'added':
+        elif item['status'] == 'added':
             Added = item['when']
             print "Added on :%s" % item['when']
 
